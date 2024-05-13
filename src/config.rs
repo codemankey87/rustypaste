@@ -31,41 +31,44 @@ pub struct Settings {
 }
 
 /// Server configuration.
-#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
-pub struct ServerConfig {
-    /// The socket address to bind.
-    pub address: String,
-    /// URL that can be used to access the server externally.
-    pub url: Option<String>,
-    /// Number of workers to start.
-    pub workers: Option<usize>,
-    /// Maximum content length.
-    pub max_content_length: Byte,
-    /// Storage path.
-    pub upload_path: PathBuf,
-    /// Request timeout.
-    #[serde(default, with = "humantime_serde")]
-    pub timeout: Option<Duration>,
-    /// Authentication token.
-    #[deprecated(note = "use [server].auth_tokens instead")]
-    pub auth_token: Option<String>,
-    /// Authentication tokens.
-    pub auth_tokens: Option<HashSet<String>>,
-    /// Expose version.
-    pub expose_version: Option<bool>,
-    /// Landing page text.
-    #[deprecated(note = "use the [landing_page] table")]
-    pub landing_page: Option<String>,
-    /// Landing page content-type.
-    #[deprecated(note = "use the [landing_page] table")]
-    pub landing_page_content_type: Option<String>,
-    /// Handle spaces either via encoding or replacing.
-    pub handle_spaces: Option<SpaceHandlingConfig>,
-    /// Path of the JSON index.
-    pub expose_list: Option<bool>,
-    /// Authentication tokens for deleting.
-    pub delete_tokens: Option<HashSet<String>>,
-}
+    /// Server configuration.
+    #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+    pub struct ServerConfig {
+        /// The socket address to bind.
+        pub address: String,
+        /// URL that can be used to access the server externally.
+        pub url: Option<String>,
+        /// Number of workers to start.
+        pub workers: Option<usize>,
+        /// Maximum content length.
+        pub max_content_length: Byte,
+        /// Maximum total size of uploads.
+        pub max_uploads: Option<Byte>,
+        /// Storage path.
+        pub upload_path: PathBuf,
+        /// Request timeout.
+        #[serde(default, with = "humantime_serde")]
+        pub timeout: Option<Duration>,
+        /// Authentication token.
+        #[deprecated(note = "use [server].auth_tokens instead")]
+        pub auth_token: Option<String>,
+        /// Authentication tokens.
+        pub auth_tokens: Option<HashSet<String>>,
+        /// Expose version.
+        pub expose_version: Option<bool>,
+        /// Landing page text.
+        #[deprecated(note = "use the [landing_page] table")]
+        pub landing_page: Option<String>,
+        /// Landing page content-type.
+        #[deprecated(note = "use the [landing_page] table")]
+        pub landing_page_content_type: Option<String>,
+        /// Handle spaces either via encoding or replacing.
+        pub handle_spaces: Option<SpaceHandlingConfig>,
+        /// Path of the JSON index.
+        pub expose_list: Option<bool>,
+        /// Authentication tokens for deleting.
+        pub delete_tokens: Option<HashSet<String>>,
+    }
 
 /// Enum representing different strategies for handling spaces in filenames.
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]

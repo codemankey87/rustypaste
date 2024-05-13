@@ -18,11 +18,14 @@ pub struct File {
 pub struct Directory {
     /// Files in the directory.
     pub files: Vec<File>,
+    /// Total size of the files in bytes.
+    pub total_size: u64,
 }
 
 impl<'a> TryFrom<&'a Path> for Directory {
     type Error = ActixError;
     fn try_from(directory: &'a Path) -> Result<Self, Self::Error> {
+        let mut total_size: u64 = 0;
         let files = glob(directory.join("**").join("*").to_str().ok_or_else(|| {
             error::ErrorInternalServerError("directory contains invalid characters")
         })?)
@@ -30,7 +33,11 @@ impl<'a> TryFrom<&'a Path> for Directory {
         .filter_map(Result::ok)
         .filter(|path| !path.is_dir())
         .filter_map(|path| match OsFile::open(&path) {
-            Ok(file) => Some((path, file)),
+            Ok(file) => {
+                let size = file.metadata().ok()?.len();
+                total_size += size;
+                Some((path, file))
+            }
             _ => None,
         })
         .filter_map(|(path, file)| match util::sha256_digest(file) {
@@ -38,17 +45,22 @@ impl<'a> TryFrom<&'a Path> for Directory {
             _ => None,
         })
         .collect();
-        Ok(Self { files })
+        Ok(Self { files, total_size })
     }
 }
 
 impl Directory {
     /// Returns the file that matches the given checksum.
-    pub fn get_file<S: AsRef<str>>(self, sha256sum: S) -> Option<File> {
-        self.files.into_iter().find(|file| {
+    pub fn get_file<S: AsRef<str>>(&self, sha256sum: S) -> Option<&File> {
+        self.files.iter().find(|file| {
             file.sha256sum == sha256sum.as_ref()
                 && !util::TIMESTAMP_EXTENSION_REGEX.is_match(&file.path.to_string_lossy())
         })
+    }
+
+    /// Checks if the total size of the files exceeds the maximum allowed size.
+    pub fn is_over_size_limit(&self, max_size: Byte) -> bool {
+        self.total_size > max_size.get_bytes()
     }
 }
 
